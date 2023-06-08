@@ -13,6 +13,11 @@ const routes = [
         path: "ns",
         component: () => import("pages/nsStatus.vue"),
       },
+      {
+        name: "scheduler",
+        path: "scheduler",
+        component: () => import("pages/schedulerStatus.vue"),
+      },
     ],
   },
   //{ path: "/vpn", component: () => import("pages/vpnStatus.vue") },

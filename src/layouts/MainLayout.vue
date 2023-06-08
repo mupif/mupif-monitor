@@ -12,7 +12,11 @@
         <q-route-tab name="ns" label="MuPIF NS" :to="'/ns'" />
         <q-route-tab name="vpn" label="MuPIF VPN" :to="'/vpn'" />
 
-        <q-tab name="scheduler" label="MuPIF Scheduler" />
+        <q-route-tab
+          name="scheduler"
+          label="MuPIF Scheduler"
+          :to="'/scheduler'"
+        />
       </q-tabs>
     </q-header>
 
@@ -27,7 +31,7 @@
         </q-tab-panel>
 
         <q-tab-panel name="scheduler">
-          <div>Scheduler</div>
+          <RouterView />
         </q-tab-panel>
       </q-tab-panels>
     </q-page-container>

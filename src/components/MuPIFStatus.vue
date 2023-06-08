@@ -1,5 +1,6 @@
 <template>
   <div class="row q-gutter-sm custom-border">
+    <div>{{ data.name ? data.name : "Project" }}:</div>
     <div>
       <q-badge :color="data ? data.APIStatus : 'none'" rounded> API </q-badge>
     </div>
@@ -28,6 +29,7 @@ export default defineComponent({
     return {
       pooling: null,
       data: {
+        name: null,
         APIStatus: null,
         NSStatus: null,
         DMStatus: null,
@@ -39,21 +41,25 @@ export default defineComponent({
     poolData() {
       this.pooling = setInterval(async () => {
         //console.log("Getting ...");
-        const response = await fetch(process.env.MUPIF_API_URL+'/status/');
+        const response = await fetch(process.env.MUPIF_API_URL + "/status2/");
         if (response.status == 200) {
           const answer = await response.json();
           this.data.APIStatus = "green";
-          this.data.NSStatus = "green";
-          if (answer.mupifDBStatus == "OK") this.data.DMSStatus = "green";
+          if ((answer.nameserver = "OK")) this.data.NSStatus = "green";
+          else this.data.NSStatus = "red";
+
+          if (answer.dms == "OK") this.data.DMSStatus = "green";
           else this.data.DMSStatus = "red";
-          if (answer.schedulerStatus == "OK")
-            this.data.SchedulerStatus = "green";
+          if (answer.scheduler == "OK") this.data.SchedulerStatus = "green";
           else this.data.SchedulerStatus = "red";
+
+          this.data.name = answer.name;
         } else {
           this.data.APIStatus = "red";
           this.data.NSStatus = null;
           this.data.DMSStatus = null;
           this.data.SchedulerStatus = null;
+          this.data.name = null;
         }
       }, 3000);
     },
@@ -67,9 +73,8 @@ export default defineComponent({
 });
 </script>
 
-
 <style>
 .custom-border {
-border: 1px solid;
+  border: 1px solid;
 }
 </style>
