@@ -1,10 +1,11 @@
 <template>
   <div class="custom-border">
-    <q-table
+  Last Executions
+  <q-table        
       flat
       bordered
       dense
-      title="Last Executions"
+      title=""
       :rows="executions"
       :columns="executionColumns"
       row-key="name"
@@ -14,9 +15,19 @@
 
 <script>
 import { defineComponent } from "vue";
+import { computed } from 'vue';
+import { useSchedulerStatStore } from 'stores/schedulerStat';
+import { storeToRefs } from 'pinia';
 
 export default defineComponent({
   name: "SchedulerLastExecutions",
+    setup () {
+        const store = useSchedulerStatStore();
+        console.log(store);
+        return {
+            store,
+        };      
+    },
 
   data() {
     return {
@@ -56,43 +67,14 @@ export default defineComponent({
           align: "left",
         },
       ],
-      executions: [],
+      //      executions: [],
     };
   },
-  methods: {
-    poolData() {
-      this.pooling = setInterval(async () => {
-        //console.log("Getting ...");
-        const response = await fetch(
-          process.env.MUPIF_API_URL + "/scheduler-status2/"
-        );
-        if (response.status == 200) {
-          const answer = await response.json();
-          if (answer[0].lastExecutions) {
-            var newRows = [];
-            var i;
-            for (i in answer[0].lastExecutions) {
-              const val = answer[0].lastExecutions[i];
-              newRows.push({
-                weid: val.weid,
-                wid: val.wid,
-                status: val.status,
-                started: val.started,
-                finished: val.finished,
-              });
-            }
-            this.executions = newRows;
-          }
-        }
-      }, 3000);
-    },
-  },
-  created() {
-    this.poolData();
-  },
-  beforeUnmount() {
-    clearInterval(this.pooling);
-  },
+  computed: {
+            executions() {
+                         return this.store.lastExecutions;
+                         }
+            },
 });
 </script>
 

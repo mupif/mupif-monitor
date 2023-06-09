@@ -5,7 +5,7 @@
     flat
     bordered
     dense
-    title="Model JobManagers"
+    title="Registered services/components"
     :rows="jobmanrows"
     :columns="jobmancolumns"
     row-key="name"
@@ -19,64 +19,75 @@ const jobmancolumns = [
     required: true,
     label: "Name",
     align: "left",
-    field: (row) => row.RemoteIP,
+    field: (row) => row.name,
     format: (val) => `${val}`,
     sortable: true,
   },
   {
     name: "ID",
     align: "left",
-    label: "ID",
-    field: "vpnAddr",
+    label: "PyroID",
+      field: (row) => row.pyroid,
     sortable: true,
   },
   {
+    name: "Type",
+    align: "left",
+    label: "type",
+    field: "type",
+    sortable: true,
+  },
+    
+  {
     name: "status",
     label: "Status",
-    field: (row) => row.bytes.rx,
+    field: "status",
     align: "left",
   },
 ];
-const nsdata = {
-  "CVUT.demo01": {
-    pyroid: "PYRO:obj_2d5c8ee73088420eaf4c0df5d7f0761a@172.24.1.1:44015",
-    type: "jobmanager",
-  },
-  MUPIF_NETWORK_SERVICES: {
-    pyroid: "PYRO:Pyro.NameServer@172.24.1.1:10000",
-    type: "",
-  },
-  "Pyro.NameServer": {
-    pyroid: "PYRO:Pyro.NameServer@0.0.0.0:10000",
-    type: "class:Pyro5.nameserver.NameServer",
-  },
-  "mupif.scheduler": {
-    pyroid: "PYRO:obj_64961ed067ad455e815d65de0da680d3@172.24.1.1:44911",
-    type: "scheduler",
-  },
-};
 
-const nsIP = "172.24.1.1";
-const nsPort = "9000";
+
 export default {
   setup() {
     return {
       jobmancolumns,
-      nsIP,
-      nsPort,
     };
   },
   data() {
-    return {};
+    return {
+           nsIP: "",
+           nsPort: "",
+           jobmanrows: [],
+    };
   },
   async created() {
-    const response = await fetch(
-      "https://get.geojs.io/v1/ip/geo.json" // ?ip=147.23.234.34
-    );
+    const response = await fetch(process.env.MUPIF_API_URL + "/ns-status2/");
     var answer = await response.json();
     console.log(answer);
-    this.coordinates = [answer.latitude, answer.longitude];
-    console.log(this.coordinates);
-  },
+    if (answer.loc) {
+       this.nsIP = answer.loc.host;
+       this.nsPort = answer.loc.port;
+    }
+      if (answer.names) {
+          
+        var d = Array(0);
+          for (const [key, value] of Object.entries(answer.names)) {
+         // loop over metadata
+         for (var m of value[1]) {
+             if (m.startsWith("type:") || m.startsWith("class:")) {
+                var type="";
+                var up = false;
+                if (m.includes("jobmanager")) type="jobmanager";
+                else if (m.includes("scheduler")) type="scheduler";
+                else if (m.includes("nameserver")) type="nameserver";
+                 d.push({name:key, pyroid: value[0], type: type, status:'-'});
+                 break;
+             }
+         }
+        }
+        // console.log(d);
+        this.jobmanrows = d;
+    }
+  }
 };
 </script>

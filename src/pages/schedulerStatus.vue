@@ -1,13 +1,13 @@
 <template>
   <div>
     <div>
-      Current Status: RunningTasks: {{ runningTasks }}, ScheduledTasks:
-      {{ scheduledTasks }}
+      Current Status: RunningTasks: {{ store.stat.running }}, ScheduledTasks:
+      {{ store.stat.scheduled }}
     </div>
   </div>
   <div>
-    Overall Statistics: ProcessedTasks: {{ processedTasks }}, FinishedTasks:
-    {{ finishedTasks }}, FailedTasks: {{ failedTasks }}
+    Overall Statistics: ProcessedTasks: {{ store.stat.processed }}, FinishedTasks:
+    {{ store.stat.finished }}, FailedTasks: {{ store.stat.failed }}
   </div>
 
   <SchedulerStatHistory />
@@ -15,6 +15,11 @@
 </template>
 
 <script>
+import { computed } from 'vue';
+import { useSchedulerStatStore } from 'stores/schedulerStat';
+import { storeToRefs } from 'pinia';
+
+
 import SchedulerStatHistory from "../components/SchedulerStatHistory.vue";
 import SchedulerLastExecutions from "../components/SchedulerLastExecutions.vue";
 
@@ -23,14 +28,31 @@ export default {
     SchedulerStatHistory,
     SchedulerLastExecutions,
   },
+  setup () {
+        const store = useSchedulerStatStore();
+        store.update();
+        return {
+               store,
+        }      
+  },
   data() {
     return {
-      runningTasks: 0,
-      scheduledTasks: 0,
-      processedTasks: 0,
-      finishedTasks: 0,
-      failedTasks: 0,
-    };
+           pooling:null,
+    };     
+  },
+  methods: {
+           poolData() {
+           this.pooling = setInterval(async () => {
+                      console.log("Getting ...");
+                      this.store.update();
+           }, 3000);
+    },
+  },    
+  created() {
+    this.poolData();
+  },
+  beforeUnmount() {
+    clearInterval(this.pooling);
   },
 };
 </script>
