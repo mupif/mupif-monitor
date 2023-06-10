@@ -21,7 +21,7 @@
     </q-header>
 
     <q-page-container>
-      <q-tab-panels v-model="tab">
+      <q-tab-panels v-model="tab" keep-alive>
         <q-tab-panel name="ns">
           <RouterView />
         </q-tab-panel>

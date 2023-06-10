@@ -1,12 +1,12 @@
 <template>
-  <div>VPN Status</div>
+    <div>{{store.vpn.name}} vpn {IP: {{store.vpn.ip}}, bytes.tx:{{store.vpn.bytes.tx}}, bytes.rx:{{store.vpn.bytes.rx}}}</div>
   <div class="q-pa-md">
     <q-table
       flat
       bordered
       dense
-      title="VPN Peers"
-      :rows="rows"
+      title="Peers"
+      :rows="store.peers"
       :columns="columns"
       row-key="name"
     />
@@ -19,7 +19,7 @@
         layer-type="base"
         name="OpenStreetMap"
       ></l-tile-layer>
-      <l-marker v-for="marker in markers" :key="marker.id" :lat-lng="marker.coordinates" >
+      <l-marker v-for="marker in markers" :key="marker.vpnAddr" :lat-lng="marker.coords" >
         <l-tooltip> "marker.id" </l-tooltip>
       </l-marker>
     </l-map>
@@ -29,6 +29,10 @@
 <script>
 import "leaflet/dist/leaflet.css";
 import { LMap, LMarker, LTileLayer, LTooltip } from "@vue-leaflet/vue-leaflet";
+import { computed } from 'vue';
+import { useVPNStatStore } from 'stores/vpnStat';
+import { storeToRefs } from 'pinia';
+
 
 const columns = [
   {
@@ -64,7 +68,10 @@ const columns = [
 
 export default {
   setup() {
+    const store=useVPNStatStore();
+    store.update();
     return {
+      store,
       columns,
     };
   },
@@ -78,45 +85,36 @@ export default {
     return {
       pooling:null,
       zoom: 4,
-      markers: [],
       rows: [],
     };
   },
+    computed: {
+        markers() {
+            var ans = []
+            for (var i of this.store.peers) {
+                //console.log(i.coords)
+                if (i.coords) {
+                    if (i.coords[0] =='nil' || i.coords[1]=='nil') {} else {
+                        ans.push({coords:i.coords, vpnAddr: i.vpnAddr})
+                    }
+                }
+            }
+            //console.log("Markers:", ans)
+            return ans
+        },
+    },
   methods: {
   poolData() {
-  this.pooling = setInterval(async () => {
-      const response = await fetch(process.env.MUPIF_API_URL+"/vpn-status2/");
-      if (response.status == 200) {
-          var answer = await response.json();
-          const vpn=Object.keys(answer)[0];
-          var newmarkers=[];
-          if (answer[vpn].peers) {
-              this.rows = answer[vpn].peers;
-          } else {
-          }
-
-          for (var i of answer[vpn].peers) {
-              const remote = i.remote.host;
-              const response = await fetch("https://get.geojs.io/v1/ip/geo/"+remote+".json");
-              var answer = await response.json();
-              //console.log(answer.latitude, answer.longitude);
-              if (answer.latitude != "nil") {
-                  newmarkers.push({id:remote, coordinates:[answer.latitude, answer.longitude]});
-              }
-          }
-          this.markers = newmarkers;
-
-      } else {
-          console.log("fetch vpn data failed");
-      }
-    }, 3000);
+      this.pooling = setInterval(async () => {
+          this.store.update();
+      }, 3000);
   },
-},
-created() {
-          this.poolData();
-},
-beforeUnmount() {
-clearInterval(this.pooling);
-},
+  },
+  created() {
+      this.poolData();
+  },
+  beforeUnmount() {
+      clearInterval(this.pooling);
+  },
 };
-</script>
+                                                             </script>
