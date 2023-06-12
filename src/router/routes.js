@@ -18,6 +18,11 @@ const routes = [
         path: "scheduler",
         component: () => import("pages/schedulerStatus.vue"),
       },
+      {
+        name: "jobmans",
+        path: "jobmans",
+        component: () => import("pages/jobmansStatus.vue"),
+      },
     ],
   },
   //{ path: "/vpn", component: () => import("pages/vpnStatus.vue") },

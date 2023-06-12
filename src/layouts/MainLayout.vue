@@ -17,6 +17,11 @@
           label="MuPIF Scheduler"
           :to="'/scheduler'"
         />
+        <q-route-tab
+          name="jobmans"
+          label="Models/JobManagers"
+          :to="'/jobmans'"
+        />
       </q-tabs>
     </q-header>
 
@@ -31,6 +36,10 @@
         </q-tab-panel>
 
         <q-tab-panel name="scheduler">
+          <RouterView />
+        </q-tab-panel>
+
+        <q-tab-panel name="jobmans">
           <RouterView />
         </q-tab-panel>
       </q-tab-panels>

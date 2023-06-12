@@ -1,6 +1,6 @@
 <template>
-    <div class="custom-border">
-    Scheduler history
+  <div class="custom-border">
+    <div>Scheduler history</div>
     <apexchart
       width="700"
       height="150"
@@ -21,100 +21,100 @@
 <script>
 import { defineComponent } from "vue";
 import VueApexCharts from "vue3-apexcharts";
-import { computed } from 'vue';
-import { useSchedulerStatStore } from 'stores/schedulerStat';
-import { storeToRefs } from 'pinia';
+import { computed } from "vue";
+import { useSchedulerStatStore } from "stores/schedulerStat";
+import { storeToRefs } from "pinia";
 
 export default defineComponent({
-    name: "SchedulerStatHistory",
-    components: {
-        apexchart: VueApexCharts,
-    },
-    setup () {
-        const store = useSchedulerStatStore();
-        //console.log(store);
-        return {
-            store,
-        };      
-    },
-    data() {
-        return {
-            pooling: null,
-            chartOptions: {
-                chart: {
-                    type: "bar",
-                    height: 100,
-                },
-                xaxis: {
-                    categories: Array(48).fill(""),
-                },
-                dataLabels: {
-                    enabled: false,
-                    position: "bottom",
-                },
-                stroke: {
-                    show: true,
-                    colors: ["transparent"],
-                },
-                fill: {
-                    opacity: 1,
-                },
-                legend: {
-                    show: true,
-                    floating: false,
-                    width: 150,
-                    position: "right",
-                },
-            },
-            loadchartOptions: {
-                chart: {
-                    type: "bar",
-                    height: 100,
-                },
-                dataLabels: {
-                    enabled: false,
-                    position: "bottom",
-                },
-                xaxis: {
-                    categories: Array(48).fill(""),
-                    /*(function (a, b) {
+  name: "SchedulerStatHistory",
+  components: {
+    apexchart: VueApexCharts,
+  },
+  setup() {
+    const store = useSchedulerStatStore();
+    //console.log(store);
+    return {
+      store,
+    };
+  },
+  data() {
+    return {
+      pooling: null,
+      chartOptions: {
+        chart: {
+          type: "bar",
+          height: 100,
+        },
+        xaxis: {
+          categories: Array(48).fill(""),
+        },
+        dataLabels: {
+          enabled: false,
+          position: "bottom",
+        },
+        stroke: {
+          show: true,
+          colors: ["transparent"],
+        },
+        fill: {
+          opacity: 1,
+        },
+        legend: {
+          show: true,
+          floating: false,
+          width: 150,
+          showForSingleSeries: true,
+          position: "right",
+        },
+      },
+      loadchartOptions: {
+        chart: {
+          type: "bar",
+          height: 100,
+        },
+        dataLabels: {
+          enabled: false,
+          position: "bottom",
+        },
+        xaxis: {
+          categories: Array(48).fill(""),
+          /*(function (a, b) {
                         while (a--) b[a] = a;
                         return b;
                     })(48, []),*/
-                },
-                legend: {
-                    show: true,
-                    showForSingleSeries: true,
-                    floating: false,
-                    width: 150,
-                    position: "right",
-                },
-
-            },
-        }
-    },        
-    computed: {
-        series() {
-            return [
-                {
-                    name: "pooledTasks",
-                    data: this.store.history.pooledTasks48,
-                },
-                {
-                    name: "processedTasks",
-                    data: this.store.history.processedTasks48, //Array(48).fill(0),
-                },
-            ];
         },
-        loadseries() {
-            return [
-                {
-                    name: "load",
-                    data: Array(48).fill(0),
-                },
-            ];
+        legend: {
+          show: true,
+          floating: false,
+          width: 150,
+          showForSingleSeries: true,
+          position: "right",
         },
+      },
+    };
+  },
+  computed: {
+    series() {
+      return [
+        {
+          name: "pooledTasks",
+          data: this.store.history.pooledTasks48,
+        },
+        {
+          name: "processedTasks",
+          data: this.store.history.processedTasks48, //Array(48).fill(0),
+        },
+      ];
     },
+    loadseries() {
+      return [
+        {
+          name: "load",
+          data: Array(48).fill(0),
+        },
+      ];
+    },
+  },
   /*methods: {
     poolData() {
       this.pooling = setInterval(async () => {
