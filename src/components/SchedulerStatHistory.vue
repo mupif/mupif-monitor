@@ -98,11 +98,11 @@ export default defineComponent({
       return [
         {
           name: "pooledTasks",
-          data: this.store.history.pooledTasks48,
+          data: this.store.history.pooledTasks48.map((x) => x),
         },
         {
           name: "processedTasks",
-          data: this.store.history.processedTasks48, //Array(48).fill(0),
+          data: this.store.history.processedTasks48.map((x) => x), //Array(48).fill(0),
         },
       ];
     },
@@ -110,7 +110,7 @@ export default defineComponent({
       return [
         {
           name: "load",
-          data: Array(48).fill(0),
+          data: this.store.history.load48.map((x) => x),
         },
       ];
     },
