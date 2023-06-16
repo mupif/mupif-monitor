@@ -39,7 +39,6 @@ export const useJobmansStatStore = defineStore("jobmansStat", {
             ans.push(d);
           }
           this.jobmanData = ans;
-          console.log(ans);
         }
       }
     },

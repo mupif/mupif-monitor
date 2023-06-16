@@ -48,6 +48,13 @@ export default defineComponent({
         xaxis: {
           categories: Array(48).fill(""),
         },
+        yaxis: {
+          labels: {
+            formatter: function (val, index) {
+              return val.toFixed(2);
+            },
+          },
+        },
         dataLabels: {
           enabled: false,
           position: "bottom",
@@ -82,6 +89,13 @@ export default defineComponent({
                         while (a--) b[a] = a;
                         return b;
                     })(48, []),*/
+        },
+        yaxis: {
+          labels: {
+            formatter: function (val, index) {
+              return val.toFixed(2);
+            },
+          },
         },
         legend: {
           show: true,

@@ -3,7 +3,11 @@
     <q-header elevated class="bg-primary text-white" height-hint="98">
       <q-toolbar>
         <q-toolbar-title>
-          <q-img src="~assets/mupif-logo-2-light.png" width="80px" />
+          <q-img
+            src="~assets/mupif-logo.png"
+            width="80px"
+            style="background-color: white"
+          />
           MuPIF Platform Monitor
         </q-toolbar-title>
         <MuPIFStatus />
@@ -45,14 +49,17 @@
       </q-tab-panels>
     </q-page-container>
 
-    <q-footer elevated class="bg-grey-8 text-white">
+    <q-footer class="bg-grey-4 text-black">
       <q-toolbar>
         <q-toolbar-title>
-          <q-avatar>
-            <img src="https://cdn.quasar.dev/logo-v2/svg/logo-mono-white.svg" />
-          </q-avatar>
-          <div>Title</div>
+          <a href="http://www.mupif.org">
+            <q-img
+              src="~assets/mupif-logo.png"
+              width="80px"
+              style="background-color: grey-4"
+          /></a>
         </q-toolbar-title>
+        <div align="right">www.mupif.org<br />(C) 2023 ČVUT Team</div>
       </q-toolbar>
     </q-footer>
   </q-layout>

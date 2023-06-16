@@ -27,7 +27,7 @@ const jobmancolumns = [
     name: "ID",
     align: "left",
     label: "PyroID",
-      field: (row) => row.pyroid,
+    field: (row) => row.pyroid,
     sortable: true,
   },
   {
@@ -37,7 +37,7 @@ const jobmancolumns = [
     field: "type",
     sortable: true,
   },
-    
+
   {
     name: "status",
     label: "Status",
@@ -45,7 +45,6 @@ const jobmancolumns = [
     align: "left",
   },
 ];
-
 
 export default {
   setup() {
@@ -55,9 +54,9 @@ export default {
   },
   data() {
     return {
-           nsIP: "",
-           nsPort: "",
-           jobmanrows: [],
+      nsIP: "",
+      nsPort: "",
+      jobmanrows: [],
     };
   },
   async created() {
@@ -65,29 +64,29 @@ export default {
     var answer = await response.json();
     console.log(answer);
     if (answer.loc) {
-       this.nsIP = answer.loc.host;
-       this.nsPort = answer.loc.port;
+      this.nsIP = answer.loc.host;
+      this.nsPort = answer.loc.port;
     }
-      if (answer.names) {
-          
-        var d = Array(0);
-          for (const [key, value] of Object.entries(answer.names)) {
-         // loop over metadata
-         for (var m of value[1]) {
-             if (m.startsWith("type:") || m.startsWith("class:")) {
-                var type="";
-                var up = false;
-                if (m.includes("jobmanager")) type="jobmanager";
-                else if (m.includes("scheduler")) type="scheduler";
-                else if (m.includes("nameserver")) type="nameserver";
-                 d.push({name:key, pyroid: value[0], type: type, status:'-'});
-                 break;
-             }
-         }
+    if (answer.names) {
+      var d = Array(0);
+      for (const [key, value] of Object.entries(answer.names)) {
+        // loop over metadata
+        for (var m of value[1]) {
+          if (m.startsWith("type:") || m.startsWith("class:")) {
+            var type = "";
+            var up = false;
+            if (m.includes("jobmanager")) type = "jobmanager";
+            else if (m.includes("scheduler")) type = "scheduler";
+            else if (m.includes("nameserver")) type = "nameserver";
+            else if (m.includes("appserver")) type = "model instance";
+            d.push({ name: key, pyroid: value[0], type: type, status: "-" });
+            break;
+          }
         }
-        // console.log(d);
-        this.jobmanrows = d;
+      }
+      // console.log(d);
+      this.jobmanrows = d;
     }
-  }
+  },
 };
 </script>

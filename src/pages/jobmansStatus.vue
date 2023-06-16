@@ -54,16 +54,40 @@
     </template>
   </q-table>
   <br />
+
   JobMans Tree
-  <q-tree
-    :nodes="treeData"
-    dense
-    node-key="label"
-    v-model:expanded="expanded"
-  />
+  <div>
+  <q-splitter
+      v-model="splitterModel"
+      style="height: 400px"
+    >
+    <template v-slot:before>
+     <q-tree
+      :nodes="treeData"
+       dense
+       node-key="label"
+       v-model:selected="selected"
+    />        <!--@update:selected="selectnode()"-->
+
+    </template>
+    <template v-slot:after>
+    <div v-if="selected">
+    job: {{getlog.key}}<br/>
+    uri: {{getlog.uri}}<br/>
+    user: {{getlog.user}}<br/>
+    runtime: {{getlog.running}}[s]<br/>
+    log_tail:
+    <pre>
+    {{getlog.tail}}
+    </pre>
+    </div>
+    </template>
+  </q-splitter>
+</div>
 </template>
 
 <script>
+import { ref } from 'vue'
 import { computed } from "vue";
 import { useJobmansStatStore } from "stores/jobmansStat";
 import { storeToRefs } from "pinia";
@@ -97,10 +121,14 @@ const columns = [
   },
   {
     name: "currJobs",
-    label: "Current jobs",
+    label: "Running jobs",
     field: (row) => row.jobStat.current,
   },
-  { name: "totalJobs", label: "Total jobs", field: (row) => row.jobStat.total },
+  {
+    name: "totalJobs",
+    label: "Processed jobs",
+    field: (row) => row.jobStat.total,
+  },
 ];
 
 export default {
@@ -108,6 +136,7 @@ export default {
     const store = useJobmansStatStore();
     store.update();
     return {
+      splitterModel: ref(50), // start at 50%
       store,
     };
   },
@@ -116,30 +145,34 @@ export default {
     return {
       pooling: null,
       columns,
+      selected: null,
     };
   },
   computed: {
     rows() {
       return this.store.jobmanData;
     },
+    getlog() {
+          for (var j of this.store.jobmanData) {
+                  for (var job of j.jobs) {
+                      if (job.key == this.selected) {
+                          return job;
+                      }
+                   }
+           }
+           return {};
+    },
     treeData() {
       var ans = [];
       for (var j of this.store.jobmanData) {
         var children = [];
-        const samplejobs = [
-          {
-            key: "CVUT_DEMO01_007",
-            uri: "172.30.24.1:lkajsdhfiasuai8fy773t6",
-            running: "6h:03m:45s",
-          },
-        ];
-        for (var job of samplejobs) {
+        for (var job of j.jobs) {
           // j.jobs
           children.push({
-            label: "" + job.key + ":" + job.uri + ",running:" + job.running,
+            label: "" + job.key, //+ "(" + job.uri + ") by " + job.user + ", running:" + job.running.toFixed()+"[s]",
           });
         }
-        ans.push({ label: j.name, children: children });
+        ans.push({ label: j.name, selectable: false, children: children });
       }
       return ans;
     },
@@ -158,5 +191,11 @@ export default {
   beforeUnmount() {
     clearInterval(this.pooling);
   },
+  selectnode (v) {
+      if(v !== null){
+        this.selected = v;
+      }
+      return;
+    },  
 };
 </script>
