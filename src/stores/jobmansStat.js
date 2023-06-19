@@ -16,11 +16,13 @@ export const useJobmansStatStore = defineStore("jobmansStat", {
       const response = await fetch(
         process.env.MUPIF_API_URL + "/jobmans-status2/"
       );
+      console.log("Updating jobmans-status2...");
+
       if (response.status == 200) {
         const answer = await response.json();
         if (answer) {
+          console.log("ok");
           var ans = [];
-          console.log("Updating jobmansStat2");
           for (var j of answer) {
             // loop over individual jobman data
             var d = {

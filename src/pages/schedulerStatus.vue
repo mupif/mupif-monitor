@@ -53,10 +53,9 @@ export default {
   methods: {
     poolData() {
       this.pooling = setInterval(async () => {
-        console.log("Getting ...");
         this.store.update();
-      }, 3000);
-      console.log(this.store.stat.currentLoad);
+      }, 10000);
+      //console.log(this.store.stat.currentLoad);
     },
   },
   created() {

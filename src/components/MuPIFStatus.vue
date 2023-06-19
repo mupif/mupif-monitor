@@ -61,7 +61,7 @@ export default defineComponent({
           this.data.SchedulerStatus = null;
           this.data.name = null;
         }
-      }, 3000);
+      }, 10000);
     },
   },
   created() {

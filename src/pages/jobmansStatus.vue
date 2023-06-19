@@ -57,37 +57,35 @@
 
   JobMans Tree
   <div>
-  <q-splitter
-      v-model="splitterModel"
-      style="height: 400px"
-    >
-    <template v-slot:before>
-     <q-tree
-      :nodes="treeData"
-       dense
-       node-key="label"
-       v-model:selected="selected"
-    />        <!--@update:selected="selectnode()"-->
-
-    </template>
-    <template v-slot:after>
-    <div v-if="selected">
-    job: {{getlog.key}}<br/>
-    uri: {{getlog.uri}}<br/>
-    user: {{getlog.user}}<br/>
-    runtime: {{getlog.running}}[s]<br/>
-    log_tail:
-    <pre>
-    {{getlog.tail}}
-    </pre>
-    </div>
-    </template>
-  </q-splitter>
-</div>
+    <q-splitter v-model="splitterModel" style="height: 400px">
+      <template v-slot:before>
+        <q-tree
+          :nodes="treeData"
+          dense
+          node-key="label"
+          v-model:selected="selected"
+        />
+        <!--@update:selected="selectnode()"-->
+      </template>
+      <template v-slot:after>
+        <div v-if="selected">
+          job: {{ getlog.key }}<br />
+          uri: {{ getlog.uri }}<br />
+          user: {{ getlog.user }}<br />
+          runtime: {{ getlog.running }}[s]<br />
+          log_tail:
+          <pre>
+    {{ getlog.tail }}
+    </pre
+          >
+        </div>
+      </template>
+    </q-splitter>
+  </div>
 </template>
 
 <script>
-import { ref } from 'vue'
+import { ref } from "vue";
 import { computed } from "vue";
 import { useJobmansStatStore } from "stores/jobmansStat";
 import { storeToRefs } from "pinia";
@@ -153,14 +151,14 @@ export default {
       return this.store.jobmanData;
     },
     getlog() {
-          for (var j of this.store.jobmanData) {
-                  for (var job of j.jobs) {
-                      if (job.key == this.selected) {
-                          return job;
-                      }
-                   }
-           }
-           return {};
+      for (var j of this.store.jobmanData) {
+        for (var job of j.jobs) {
+          if (job.key == this.selected) {
+            return job;
+          }
+        }
+      }
+      return {};
     },
     treeData() {
       var ans = [];
@@ -180,7 +178,6 @@ export default {
   methods: {
     poolData() {
       this.pooling = setInterval(async () => {
-        console.log("Getting ...");
         this.store.update();
       }, 3000);
     },
@@ -191,11 +188,11 @@ export default {
   beforeUnmount() {
     clearInterval(this.pooling);
   },
-  selectnode (v) {
-      if(v !== null){
-        this.selected = v;
-      }
-      return;
-    },  
+  selectnode(v) {
+    if (v !== null) {
+      this.selected = v;
+    }
+    return;
+  },
 };
 </script>

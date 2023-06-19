@@ -1,7 +1,7 @@
 <template>
   <div class="custom-border">
-  Last Executions
-  <q-table        
+    Last Executions
+    <q-table
       flat
       bordered
       dense
@@ -15,19 +15,19 @@
 
 <script>
 import { defineComponent } from "vue";
-import { computed } from 'vue';
-import { useSchedulerStatStore } from 'stores/schedulerStat';
-import { storeToRefs } from 'pinia';
+import { computed } from "vue";
+import { useSchedulerStatStore } from "stores/schedulerStat";
+import { storeToRefs } from "pinia";
 
 export default defineComponent({
   name: "SchedulerLastExecutions",
-    setup () {
-        const store = useSchedulerStatStore();
-        console.log(store);
-        return {
-            store,
-        };      
-    },
+  setup() {
+    const store = useSchedulerStatStore();
+    //console.log(store);
+    return {
+      store,
+    };
+  },
 
   data() {
     return {
@@ -71,10 +71,10 @@ export default defineComponent({
     };
   },
   computed: {
-            executions() {
-                         return this.store.lastExecutions;
-                         }
-            },
+    executions() {
+      return this.store.lastExecutions;
+    },
+  },
 });
 </script>
 

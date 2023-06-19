@@ -34,13 +34,14 @@ export const useSchedulerStatStore = defineStore("schedulerStat", {
 
   actions: {
     async update() {
+      console.log("Updating scheduler-status2...");
       const response = await fetch(
         process.env.MUPIF_API_URL + "/scheduler-status2/"
       );
       if (response.status == 200) {
         const answer = await response.json();
         if (answer) {
-          console.log("Updating SchedulerStat2");
+          console.log("ok");
           if (answer[0].numTasks) {
             const v = answer[0].numTasks;
             this.stat.running = v.running;
@@ -61,9 +62,10 @@ export const useSchedulerStatStore = defineStore("schedulerStat", {
           if (answer[0].lastExecutions) {
             this.lastExecutions = answer[0].lastExecutions;
           }
-          //console.log(this.stat);
+          return;
         }
       }
+      console.log("failed, response status:", response.status);
     },
   },
 });
