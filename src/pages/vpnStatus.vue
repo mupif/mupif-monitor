@@ -64,6 +64,7 @@ const columns = [
     align: "left",
   },
     { name: "lastHandshake", label: "LastHandShake", field: "lastHandshake", align:"left", },
+    { name: "name", align: "left", label: "name", field: "name" },
 ];
 
 export default {
