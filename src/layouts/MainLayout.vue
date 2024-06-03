@@ -23,7 +23,7 @@
         />
         <q-route-tab
           name="jobmans"
-          label="Models/JobManagers"
+          label="Model servers"
           :to="'/jobmans'"
         />
       </q-tabs>

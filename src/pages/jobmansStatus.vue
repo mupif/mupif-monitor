@@ -1,10 +1,10 @@
 <template>
-  <div>JobMamanager Statuses</div>
+  <div>Model servers overview</div>
 
   <q-table
     flat
     bordered
-    title="JobManagers"
+    title="Model servers"
     :rows="rows"
     :columns="columns"
     row-key="name"

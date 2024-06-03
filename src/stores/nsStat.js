@@ -31,10 +31,10 @@ export const useNSStatStore = defineStore('nsStat', {
                                 if (m.startsWith("type:") || m.startsWith("class:")) {
                                     var type = "";
                                     var up = false;
-                                    if (m.includes("jobmanager")) type = "jobmanager";
+                                    if (m.includes("jobmanager")) type = "modelServer";
                                     else if (m.includes("scheduler")) type = "scheduler";
                                     else if (m.includes("nameserver")) type = "nameserver";
-                                    else if (m.includes("appserver")) type = "model instance";
+                                    else if (m.includes("appserver")) type = "modelInstance";
                                     d.push({ name: key, pyroid: value[0], type: type, status: "-" });
                                     break;
                                 }

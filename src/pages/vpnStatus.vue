@@ -8,7 +8,10 @@
       title="Peers"
       :rows="store.peers"
       :columns="columns"
-      row-key="name"
+      row-key="vpnAddr"
+      _selection="single"
+      v-model:selected="selected"
+      @row-click="onRowClick"
     />
   </div>
 
@@ -19,20 +22,63 @@
         layer-type="base"
         name="OpenStreetMap"
       ></l-tile-layer>
-      <l-marker v-for="marker in markers" :key="marker.vpnAddr" :lat-lng="marker.coords" >
-        <l-tooltip> "marker.id" </l-tooltip>
-      </l-marker>
+      <div v-if="selected.length">
+        <l-marker v-for="marker in markers" :key="marker.vpnAddr" :lat-lng="marker.coords"
+          :icon="(selected.length != 0 && selected[0].vpnAddr == marker.vpnAddr) ? orangeIcon : blueIcon"
+          :z-index-offset="selected[0].vpnAddr == marker.vpnAddr ? 1000 : 0"
+
+        >
+          <l-tooltip :content="marker.label"></l-tooltip>
+        </l-marker>
+      </div>
+      <div v-else>
+        <l-marker v-for="marker in markers" :key="marker.vpnAddr" :lat-lng="marker.coords">
+          <l-tooltip :content="marker.label"></l-tooltip>
+        </l-marker>
+      </div>
     </l-map>
   </div>
 </template>
 
 <script>
 import "leaflet/dist/leaflet.css";
-import { LMap, LMarker, LTileLayer, LTooltip } from "@vue-leaflet/vue-leaflet";
+import { ref } from 'vue'
+import { LMap, LMarker, LIcon, LTileLayer, LTooltip } from "@vue-leaflet/vue-leaflet";
 import { computed } from 'vue';
 import { useVPNStatStore } from 'stores/vpnStat';
+import { useNSStatStore } from "stores/nsStat";
 import { storeToRefs } from 'pinia';
+import L from 'leaflet';
 
+
+const greenIcon = new L.Icon({
+  iconUrl: '/icons/marker-icon-green.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
+});
+const blueIcon = new L.Icon({
+  iconUrl: '/icons/marker-icon-blue.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
+});
+const redIcon = new L.Icon({
+  iconUrl: '/icons/marker-icon-red.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
+});
+const orangeIcon = new L.Icon({
+  iconUrl: '/icons/marker-icon-orange.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
+});
 
 const columns = [
   {
@@ -70,10 +116,17 @@ const columns = [
 export default {
   setup() {
     const store=useVPNStatStore();
+    const nsStatStore = useNSStatStore();
     store.update();
+    nsStatStore.update();
     return {
+      selected: ref([]),
       store,
+      nsStatStore,
       columns,
+      blueIcon,
+      greenIcon,
+      orangeIcon,
     };
   },
   components: {
@@ -96,7 +149,22 @@ export default {
                 //console.log(i.coords)
                 if (i.coords) {
                     if (i.coords[0] =='nil' || i.coords[1]=='nil') {} else {
-                        ans.push({coords:i.coords, vpnAddr: i.vpnAddr})
+                        const ippattern=/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/
+                        const recIP = ippattern.exec(i.vpnAddr)[0]
+                        var label = recIP; // i.vpnAddr;
+                        //console.log("recIP:", recIP)
+                        //console.log("nsStatStore:", this.nsStatStore.rows)
+                        const found = this.nsStatStore.rows.filter(e=>ippattern.exec(e.pyroid)[0] == recIP);
+                        var servers=[];
+                        for (var f of found) {
+                          if (f.type == 'modelServer') {
+                            servers.push(f.name)
+                          }
+                        }
+                        if (servers.length > 0) {
+                          label = label + '[' + servers.join(',') + ']';
+                        }
+                        ans.push({coords:i.coords, vpnAddr: i.vpnAddr, label:label})
                     }
                 }
             }
@@ -105,11 +173,15 @@ export default {
         },
     },
   methods: {
-  poolData() {
-      this.pooling = setInterval(async () => {
-          this.store.update();
-      }, 3000);
-  },
+    poolData() {
+        this.pooling = setInterval(async () => {
+            this.store.update();
+        }, 3000);
+    },
+    onRowClick (evt, row, index) {
+              console.log('clicked on', row)
+              this.selected = [row];
+    },
   },
   created() {
       this.poolData();

@@ -29,7 +29,7 @@ export const useJobmansStatStore = defineStore("jobmansStat", {
               name: j.ns.name,
               uri: j.ns.uri,
               signature: j.signature,
-              status: j.status,
+              status: ((j.status)?'OK':'ERR'),
               jobStat: {
                 current: j.numJobs.curr,
                 max: j.numJobs.max,
