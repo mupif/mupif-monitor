@@ -22,19 +22,24 @@
         layer-type="base"
         name="OpenStreetMap"
       ></l-tile-layer>
-      <div v-if="selected.length">
-        <l-marker v-for="marker in markers" :key="marker.vpnAddr" :lat-lng="marker.coords"
-          :icon="(selected.length != 0 && selected[0].vpnAddr == marker.vpnAddr) ? orangeIcon : blueIcon"
-          :z-index-offset="selected[0].vpnAddr == marker.vpnAddr ? 1000 : 0"
-
-        >
-          <l-tooltip :content="marker.label"></l-tooltip>
-        </l-marker>
-      </div>
-      <div v-else>
-        <l-marker v-for="marker in markers" :key="marker.vpnAddr" :lat-lng="marker.coords">
-          <l-tooltip :content="marker.label"></l-tooltip>
-        </l-marker>
+      <div v-for="marker in markers" :key="marker.vpnAddr">
+        <div v-if="selected.length" >
+          <div v-if="selected[0].vpnAddr == marker.vpnAddr">
+            <l-marker :lat-lng="marker.coords" :icon="orangeIcon" :z-index-offset="1000">
+              <l-tooltip :content="marker.label" :options={permanent:true}></l-tooltip>
+            </l-marker>
+          </div>
+          <div v-else>
+            <l-marker :lat-lng="marker.coords" :icon="blueIcon">
+              <l-tooltip :content="marker.label"></l-tooltip>
+            </l-marker>
+          </div>
+        </div>
+        <div v-else>
+          <l-marker :lat-lng="marker.coords" :icon="blueIcon">
+            <l-tooltip :content="marker.label"></l-tooltip>
+          </l-marker>
+          </div>
       </div>
     </l-map>
   </div>
@@ -180,7 +185,12 @@ export default {
     },
     onRowClick (evt, row, index) {
               console.log('clicked on', row)
-              this.selected = [row];
+              if (this.selected.length && this.selected[0].vpnAddr == row.vpnAddr) {
+                  this.selected = [];
+                  
+              } else {
+                  this.selected = [row];
+              };
     },
   },
   created() {
