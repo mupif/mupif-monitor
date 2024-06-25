@@ -15,6 +15,11 @@ const { configure } = require("quasar/wrappers");
 
 module.exports = configure(function (ctx) {
   return {
+    // for deployment into subdirectory: https://webpack.js.org/guides/public-path/#automatic-publicpath
+    output: {
+      publicPath: 'auto',
+    },
+
     // https://v2.quasar.dev/quasar-cli-webpack/supporting-ts
     supportTS: false,
 
