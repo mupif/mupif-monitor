@@ -56,30 +56,30 @@ import { storeToRefs } from 'pinia';
 import L from 'leaflet';
 
 
-/* using relative paths to resources in src/assets: https://quasar.dev/quasar-cli-webpack/handling-assets/#regular-assets-src-assets */
+/* using relative paths to resources in /public: https://quasar.dev/quasar-cli-webpack/handling-assets/#static-assets-public */
 const greenIcon = new L.Icon({
-  iconUrl: './marker-icon-green.png',
+  iconUrl: 'marker-icon-green.png',
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
   shadowSize: [41, 41]
 });
 const blueIcon = new L.Icon({
-  iconUrl: './marker-icon-blue.png',
+  iconUrl: 'marker-icon-blue.png',
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
   shadowSize: [41, 41]
 });
 const redIcon = new L.Icon({
-  iconUrl: './marker-icon-red.png',
+  iconUrl: 'marker-icon-red.png',
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
   shadowSize: [41, 41]
 });
 const orangeIcon = new L.Icon({
-  iconUrl: './marker-icon-orange.png',
+  iconUrl: 'marker-icon-orange.png',
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
@@ -201,4 +201,4 @@ export default {
       clearInterval(this.pooling);
   },
 };
-                                                             </script>
+</script>
