@@ -40,9 +40,12 @@ export default {
   },
   setup() {
     const store = useSchedulerStatStore();
+    var activePoolRequests= 0;
+
     store.update();
     return {
       store,
+      activePoolRequests,
     };
   },
   data() {
@@ -53,6 +56,11 @@ export default {
   methods: {
     poolData() {
       this.pooling = setInterval(async () => {
+        if (this.activePoolRequests < 2) {
+          this.activePoolRequests++;
+          this.store.update();
+          this.activePoolRequests--;
+        }
         this.store.update();
       }, 10000);
       //console.log(this.store.stat.currentLoad);

@@ -132,10 +132,13 @@ const columns = [
 export default {
   setup() {
     const store = useJobmansStatStore();
+    var activePoolRequests= 0;
+
     store.update();
     return {
       splitterModel: ref(50), // start at 50%
       store,
+      activePoolRequests,
     };
   },
 
@@ -178,7 +181,11 @@ export default {
   methods: {
     poolData() {
       this.pooling = setInterval(async () => {
-        this.store.update();
+        if (this.activePoolRequests < 2) {
+          this.activePoolRequests++;
+          this.store.update();
+          this.activePoolRequests--;
+        }
       }, 3000);
     },
   },

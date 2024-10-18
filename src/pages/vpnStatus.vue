@@ -125,6 +125,8 @@ export default {
     const nsStatStore = useNSStatStore();
     store.update();
     nsStatStore.update();
+    var activePoolRequests= 0;
+
     return {
       selected: ref([]),
       store,
@@ -133,6 +135,7 @@ export default {
       blueIcon,
       greenIcon,
       orangeIcon,
+      activePoolRequests,
     };
   },
   components: {
@@ -181,7 +184,11 @@ export default {
   methods: {
     poolData() {
         this.pooling = setInterval(async () => {
-            this.store.update();
+            if (this.activePoolRequests < 2) {
+              this.activePoolRequests++;
+              this.store.update();
+              this.activePoolRequests--;
+            }
         }, 3000);
     },
     onRowClick (evt, row, index) {
