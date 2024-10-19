@@ -61,7 +61,6 @@ export default {
           this.store.update();
           this.activePoolRequests--;
         }
-        this.store.update();
       }, 10000);
       //console.log(this.store.stat.currentLoad);
     },
