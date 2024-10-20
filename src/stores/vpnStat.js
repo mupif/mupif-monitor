@@ -11,6 +11,7 @@ export const useVPNStatStore = defineStore("vpnStat", {
       },
     },
     peers: [],
+    remoteIPGeoCache: {},
   }),
 
   getters: {
@@ -23,6 +24,27 @@ export const useVPNStatStore = defineStore("vpnStat", {
   },
 
   actions: {
+    async getGeoLocation(host) {
+      if (host in this.remoteIPGeoCache) {
+        return this.remoteIPGeoCache[host];
+      } else {
+        // geo geolocation data query
+        console.log("fetching geolocation data for", host);
+        const response = await fetch(
+          "https://get.geojs.io/v1/ip/geo/" + host + ".json"
+        );
+        var ans = await response.json();
+        // cache result
+        this.remoteIPGeoCache[host] = {
+          coords: [ans.latitude, ans.longitude],
+          country: ans.country,
+          city: ans.city,
+          organization_name: ans.organization_name,
+        };
+        //console.log(this.remoteIPGeoCache[host]);
+        return this.remoteIPGeoCache[host];
+      }
+    },
     async update() {
       const response = await fetch(process.env.MUPIF_API_URL + "/vpn-status2/");
       console.log("Updating vpn-status2...");
@@ -39,26 +61,43 @@ export const useVPNStatStore = defineStore("vpnStat", {
           this.vpn.bytes.rx = answer[vpn].bytes.rx;
           // process vpn peers
           if (answer[vpn].peers) {
-            this.peers = answer[vpn].peers;
-          }
-          for (var i of this.peers) {
-            const remote = i.remote.host;
-            // geo geolocation data
-            const response = await fetch(
-              "https://get.geojs.io/v1/ip/geo/" + remote + ".json"
-            );
-            var ans = await response.json();
-            //console.log(answer.latitude, answer.longitude);
-            i["coords"] = [ans.latitude, ans.longitude];
-            i["country"] = ans.country;
-            i["city"] = ans.city;
-            i["organization_name"] = ans.organization_name;
+            // check if entry already exists
+            for (var i of answer[vpn].peers) {
+              var found = false;
+              var j;
+              for (j of this.peers) { // cache geolocation data
+                if (i.vpnAddr == j.vpnAddr) {
+                  found = true;
+                  j.bytes = i.bytes;
+                  j.lastHandshake = i.lastHandshake;
+                  if (j.remote.host != i.remote.host) {
+                    const gl = await this.getGeoLocation(i.remote.host);
+                    j.coords = gl.coords;
+                    j.country = gl.country;
+                    j.city = gl.city;
+                    j.organization_name = gl.organization_name;
+                  }
+                  break;
+                }
+              }
+              if (!found) {
+                const gl = await this.getGeoLocation(i.remote.host);
+                //console.log("new peer location", gl);
+                i.coords = gl.coords;
+                i.country = gl.country;
+                i.city = gl.city;
+                i.organization_name = gl.organization_name;
+                //console.log("new peer", i);
+                this.peers.push(i);
+              }
+            }
+            //console.log(this.peers)
+          } else {
+            console.log("fetch vpn data failed");
           }
         } else {
-          console.log("fetch vpn data failed");
+          console.log("failed with code", response.status);
         }
-      } else {
-        console.log("failed with code", response.status);
       }
     },
   },
