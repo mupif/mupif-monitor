@@ -126,7 +126,8 @@ const columns = [
     name: "totalJobs",
     label: "Processed jobs",
     field: (row) => row.jobStat.total,
-  },
+
+},
 ];
 
 export default {
@@ -183,8 +184,20 @@ export default {
       this.pooling = setInterval(async () => {
         if (this.activePoolRequests < 2) {
           this.activePoolRequests++;
-          this.store.update();
+          console.log("JobManStat pooling data, active requests = ", this.activePoolRequests);
+          var runID = this.activePoolRequests;
+          await(this.store.update());
+          /*
+          const date = Date.now();
+          let currentDate = null;
+          do {
+             currentDate = Date.now();
+          } while (currentDate - date < 10000);
+          */
+          console.log("Finished runID ", runID);
           this.activePoolRequests--;
+        } else {
+          console.log("JobManStat skipping pooling data attempt, active requests = ", this.activePoolRequests);
         }
       }, 3000);
     },
