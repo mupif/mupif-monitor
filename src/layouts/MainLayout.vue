@@ -59,7 +59,7 @@
               style="background-color: grey-4"
           /></a>
         </q-toolbar-title>
-        <div align="right">www.mupif.org<br />(C) 2024 ČVUT Team</div>
+        <div align="right">www.mupif.org<br />(C) 2024 &Ccaron;VUT Team</div>
       </q-toolbar>
     </q-footer>
   </q-layout>
