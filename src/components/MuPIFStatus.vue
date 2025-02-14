@@ -1,6 +1,6 @@
 <template>
   <div class="row q-gutter-sm custom-border">
-    <div>{{ data.name ? data.name : "Project" }}:</div>
+<!--    <div>{{ data.name ? data.name : "Project" }}:</div>-->
     <div>
       <q-badge :color="data ? data.APIStatus : 'none'" rounded> API </q-badge>
     </div>
