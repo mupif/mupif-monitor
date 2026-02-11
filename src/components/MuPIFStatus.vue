@@ -32,40 +32,41 @@ export default defineComponent({
         name: null,
         APIStatus: null,
         NSStatus: null,
-        DMStatus: null,
+        DMSStatus: null,
         SchedulerStatus: null,
       },
     };
   },
   methods: {
-    poolData() {
-      this.pooling = setInterval(async () => {
-        //console.log("Getting ...");
+    async fetchData() {
+      try {
         const response = await fetch(process.env.MUPIF_API_URL + "/status2/");
-        if (response.status == 200) {
+        if (response.status === 200) {
           const answer = await response.json();
+          
           this.data.APIStatus = "green";
-          if ((answer.nameserver = "OK")) this.data.NSStatus = "green";
-          else this.data.NSStatus = "red";
-
-          if (answer.dms == "OK") this.data.DMSStatus = "green";
-          else this.data.DMSStatus = "red";
-          if (answer.scheduler == "OK") this.data.SchedulerStatus = "green";
-          else this.data.SchedulerStatus = "red";
-
+          this.data.NSStatus = (answer.nameserver === "OK") ? "green" : "red";
+          this.data.DMSStatus = (answer.dms === "OK") ? "green" : "red";
+          this.data.SchedulerStatus = (answer.scheduler === "OK") ? "green" : "red";
           this.data.name = answer.name;
         } else {
-          this.data.APIStatus = "red";
-          this.data.NSStatus = null;
-          this.data.DMSStatus = null;
-          this.data.SchedulerStatus = null;
-          this.data.name = null;
+          this.setErrorState();
         }
-      }, 10000);
+      } catch (error) {
+        this.setErrorState();
+      }
     },
+    setErrorState() {
+      this.data.APIStatus = "red";
+      this.data.NSStatus = null;
+      this.data.DMSStatus = null;
+      this.data.SchedulerStatus = null;
+      this.data.name = null;
+    }
   },
   created() {
-    this.poolData();
+    this.fetchData();
+    this.pooling = setInterval(this.fetchData, 10000);
   },
   beforeUnmount() {
     clearInterval(this.pooling);

@@ -52,7 +52,7 @@ module.exports = configure(function (ctx) {
     build: {
       vueRouterMode: "hash", // available values: 'hash', 'history'
         env: {
-            MUPIF_API_URL:process.env.MUPIF_API_URL?process.env.MUPIF_API_URL:'http://172.24.1.1:8005',  
+            MUPIF_API_URL:process.env.MUPIF_API_URL?process.env.MUPIF_API_URL:'/api',  
         },
 
       // transpile: false,
