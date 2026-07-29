@@ -23,6 +23,16 @@
 <script>
 import { defineComponent } from "vue";
 
+function getColorByStatus(status) {
+  if (status === "OK") {
+    return "green";
+  } else if (status === "Failed") {
+    return "red";
+  } else {
+    return null;
+  }
+}
+
 export default defineComponent({
   name: "MuPIFStatus",
   data() {
@@ -44,10 +54,10 @@ export default defineComponent({
         if (response.status === 200) {
           const answer = await response.json();
           
-          this.data.APIStatus = "green";
-          this.data.NSStatus = (answer.nameserver === "OK") ? "green" : "red";
-          this.data.DMSStatus = (answer.dms === "OK") ? "green" : "red";
-          this.data.SchedulerStatus = (answer.scheduler === "OK") ? "green" : "red";
+          this.data.APIStatus = getColorByStatus("OK");
+          this.data.NSStatus = getColorByStatus(answer.nameserver);
+          this.data.DMSStatus = getColorByStatus(answer.dms);
+          this.data.SchedulerStatus = getColorByStatus(answer.scheduler);
           this.data.name = answer.name;
         } else {
           this.setErrorState();
@@ -57,7 +67,7 @@ export default defineComponent({
       }
     },
     setErrorState() {
-      this.data.APIStatus = "red";
+      this.data.APIStatus = getColorByStatus("Failed");
       this.data.NSStatus = null;
       this.data.DMSStatus = null;
       this.data.SchedulerStatus = null;
