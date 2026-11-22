@@ -21,6 +21,8 @@ export const usePlatformStatStore = defineStore("platformStat", {
     services: null,
     /** VPN summary: {iface, ip, tx, rx, peers, activePeers}, or null */
     vpn: null,
+    /** whether an update has finished (before that, nothing is known) */
+    loaded: false,
     /** reasons of failed requests, by endpoint */
     errors: {},
     updating: false,
@@ -54,6 +56,7 @@ export const usePlatformStatStore = defineStore("platformStat", {
         ]);
         this.services = services;
         this.vpn = vpn ? summariseVpn(vpn) : null;
+        this.loaded = true;
       } finally {
         this.updating = false;
       }
