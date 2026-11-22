@@ -13,7 +13,14 @@ export const useNSStatStore = defineStore('nsStat', {
 
     actions: {
         async update() {
-            const response = await fetch(process.env.MUPIF_API_URL + "/ns-status2/");
+            let response;
+            try {
+                response = await fetch(process.env.MUPIF_API_URL + "/ns-status2/");
+            } catch (e) {
+                // API not reachable: keep the last data; the caller (a timer) cannot handle exceptions
+                console.log("ns-status2 failed:", e);
+                return;
+            }
             if (response.status == 200) {
                 console.log("receiving ns-status2");
                 const answer = await response.json();
@@ -46,7 +53,7 @@ export const useNSStatStore = defineStore('nsStat', {
                         return;
                     }
                 } else {
-                    conslole.log("received no data");
+                    console.log("received no data");
                 }
             } else {
                 console.log("ns-status2 failed with code", response.status);

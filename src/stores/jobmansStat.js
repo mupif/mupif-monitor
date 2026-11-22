@@ -13,9 +13,14 @@ export const useJobmansStatStore = defineStore("jobmansStat", {
 
   actions: {
     async update() {
-      const response = await fetch(
-        process.env.MUPIF_API_URL + "/jobmans-status2/"
-      );
+      let response;
+      try {
+        response = await fetch(process.env.MUPIF_API_URL + "/jobmans-status2/");
+      } catch (e) {
+        // API not reachable: keep the last data; the caller (a timer) cannot handle exceptions
+        console.log("jobmans-status2 failed:", e);
+        return;
+      }
       console.log("Updating jobmans-status2...");
 
       if (response.status == 200) {
@@ -31,7 +36,7 @@ export const useJobmansStatStore = defineStore("jobmansStat", {
               name: j.ns.name,
               uri: j.ns.uri,
               signature: j.signature,
-              status: ((j.status)?'OK':'ERR'),
+              status: j.status ? "OK" : "ERR",
               jobStat: {
                 current: j.numJobs.curr,
                 max: j.numJobs.max,
