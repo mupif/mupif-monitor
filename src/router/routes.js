@@ -3,6 +3,13 @@ const routes = [
     path: "/",
     component: () => import("layouts/MainLayout.vue"),
     children: [
+      // the overview is the default page
+      { path: "", redirect: { name: "overview" } },
+      {
+        name: "overview",
+        path: "overview",
+        component: () => import("pages/overviewStatus.vue"),
+      },
       {
         name: "vpn",
         path: "vpn",

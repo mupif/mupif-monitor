@@ -71,8 +71,9 @@ export default defineComponent({
     };
   },
   computed: {
+    // last executions of the scheduler shown in detail (see the store's "current" getter)
     executions() {
-      return this.store.lastExecutions;
+      return this.store.current ? this.store.current.lastExecutions : [];
     },
   },
 });

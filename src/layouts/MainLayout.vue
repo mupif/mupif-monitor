@@ -13,6 +13,7 @@
         <MuPIFStatus />
       </q-toolbar>
       <q-tabs align="left" v-model="tab" dense>
+        <q-route-tab name="overview" label="Overview" :to="'/overview'" />
         <q-route-tab name="ns" label="MuPIF NS" :to="'/ns'" />
         <q-route-tab name="vpn" label="MuPIF VPN" :to="'/vpn'" />
 
@@ -31,6 +32,10 @@
 
     <q-page-container>
       <q-tab-panels v-model="tab">
+        <q-tab-panel name="overview">
+          <RouterView />
+        </q-tab-panel>
+
         <q-tab-panel name="ns">
           <RouterView />
         </q-tab-panel>
@@ -72,7 +77,8 @@ import MuPIFStatus from "../components/MuPIFStatus.vue";
 export default {
   setup() {
     return {
-      tab: ref("vpn"),
+      // the tab shown first: the overview of the platform (also the default route)
+      tab: ref("overview"),
     };
   },
   components: {
