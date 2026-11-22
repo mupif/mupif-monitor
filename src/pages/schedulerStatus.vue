@@ -1,24 +1,24 @@
 <template>
   <div>
     <div>
-      Current Status: RunningTasks: {{ store.stat.running }}, ScheduledTasks:
-      {{ store.stat.scheduled }}, CurrentLoad:
+      Current Status: RunningTasks: {{ stat.running }}, ScheduledTasks:
+      {{ stat.scheduled }}, CurrentLoad:
       <q-circular-progress
         show-value
         class="q-ma-ms"
-        :value="store.stat.currentLoad"
+        :value="stat.currentLoad"
         size="30px"
         color="teal"
         track-color="grey-3"
       >
-        {{ store.stat.currentLoad }}%
+        {{ stat.currentLoad }}%
       </q-circular-progress>
     </div>
   </div>
   <div>
-    Overall Statistics: ProcessedTasks: {{ store.stat.processed }},
-    FinishedTasks: {{ store.stat.finished }}, FailedTasks:
-    {{ store.stat.failed }}
+    Overall Statistics: ProcessedTasks: {{ stat.processed }},
+    FinishedTasks: {{ stat.finished }}, FailedTasks:
+    {{ stat.failed }}
   </div>
 
   <SchedulerStatHistory />
@@ -48,6 +48,13 @@ export default {
       activePoolRequests,
     };
   },
+  computed: {
+    // counters of the scheduler shown in detail (zeros if it did not answer)
+    stat() {
+      const c = this.store.current;
+      return c && c.stat ? c.stat : { running: 0, scheduled: 0, processed: 0, finished: 0, failed: 0, currentLoad: 0 };
+    },
+  },
   data() {
     return {
       pooling: null,
@@ -62,7 +69,7 @@ export default {
           this.activePoolRequests--;
         }
       }, 10000);
-      //console.log(this.store.stat.currentLoad);
+      //console.log(this.stat.currentLoad);
     },
   },
   created() {

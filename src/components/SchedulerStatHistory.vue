@@ -108,15 +108,20 @@ export default defineComponent({
     };
   },
   computed: {
+    // history of the scheduler shown in detail (empty if it did not answer)
+    hist() {
+      const c = this.store.current;
+      return c && c.history ? c.history : { pooledTasks48: [], processedTasks48: [], load48: [] };
+    },
     series() {
       return [
         {
           name: "pooledTasks",
-          data: this.store.history.pooledTasks48.map((x) => x),
+          data: this.hist.pooledTasks48.map((x) => x),
         },
         {
           name: "processedTasks",
-          data: this.store.history.processedTasks48.map((x) => x), //Array(48).fill(0),
+          data: this.hist.processedTasks48.map((x) => x), //Array(48).fill(0),
         },
       ];
     },
@@ -124,7 +129,7 @@ export default defineComponent({
       return [
         {
           name: "load",
-          data: this.store.history.load48.map((x) => x),
+          data: this.hist.load48.map((x) => x),
         },
       ];
     },

@@ -124,7 +124,12 @@ export default {
                         info = "load:"+load+"%";
                     }
                 } else if  (i.type == 'scheduler') {
-                    info = "load:"+this.storeScheduler.stat.currentLoad+"%";                    
+                    // the scheduler with the same nameserver name (there may be several schedulers)
+                    const sch = this.storeScheduler.byName(i.name);
+                    if (sch) {
+                        status = sch.available ? 'OK' : 'ERR';
+                        info = sch.available ? "load:"+sch.stat.currentLoad+"%" : "unreachable";
+                    }
                 }
                     
                 ans.push({name:i.name,pyroid:i.pyroid,type:i.type,status:status,info:info})
