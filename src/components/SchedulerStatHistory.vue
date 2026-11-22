@@ -1,188 +1,229 @@
 <template>
-  <div class="custom-border">
-    <div>Scheduler history</div>
-    <apexchart
-      width="700"
-      height="150"
-      type="bar"
-      :series="series"
-      :options="chartOptions"
-    />
-    <apexchart
-      width="700"
-      height="150"
-      type="bar"
-      :series="loadseries"
-      :options="loadchartOptions"
-    />
+  <!--
+    Load of one scheduler over time: how many executions were running and how many were waiting
+    to run (database queue + taken by the scheduler, not started yet).
+
+    Two charts of the same two series: the last 2 hours by minutes (detail of the current load) and
+    the last 48 hours by hours. Every point is the PEAK level in its period (minute / hour), drawn
+    as steps, so a short burst is not lost between samples. The dashed line is the capacity of the
+    scheduler (executions it can run at once): running cannot exceed it, waiting above it means
+    the scheduler is the bottleneck.
+
+    Schedulers of older versions do not report the running/waiting history; for them only the load
+    in percent (48 h) is shown.
+  -->
+  <div class="custom-border q-pa-sm">
+    <div class="text-subtitle1">Scheduler load</div>
+    <div v-if="!scheduler || !scheduler.history" class="text-grey-7">
+      No data: the scheduler did not answer.
+    </div>
+    <template v-else-if="hasGauges">
+      <div class="text-caption text-grey-8">Last 2 hours (peak per minute)</div>
+      <apexchart
+        width="100%"
+        height="220"
+        type="area"
+        :series="series120m"
+        :options="options120m"
+      />
+      <div class="text-caption text-grey-8">Last 48 hours (peak per hour)</div>
+      <apexchart
+        width="100%"
+        height="220"
+        type="area"
+        :series="series48"
+        :options="options48"
+      />
+    </template>
+    <template v-else>
+      <div class="text-caption text-grey-8">
+        Load in % of the capacity, last 48 hours (this scheduler version does
+        not report running and waiting executions)
+      </div>
+      <apexchart
+        width="100%"
+        height="220"
+        type="bar"
+        :series="seriesLoad48"
+        :options="optionsLoad48"
+      />
+    </template>
   </div>
 </template>
 
 <script>
 import { defineComponent } from "vue";
 import VueApexCharts from "vue3-apexcharts";
-import { computed } from "vue";
-import { useSchedulerStatStore } from "stores/schedulerStat";
-import { storeToRefs } from "pinia";
+
+/*
+ * Colors of the two series (categorical slots 1 and 2 of a palette validated for color-vision
+ * deficiencies: protan ΔE 24.7, both >= 3:1 on white). Identity is not by color alone: the legend
+ * names both series and the shared tooltip lists them by name.
+ */
+const COLOR_RUNNING = "#2a78d6";
+const COLOR_WAITING = "#eb6834";
+/** Recessive gray of the capacity line. */
+const COLOR_MUTED = "#8a8a86";
+
+/**
+ * Points [time in ms, value] of a history list whose last element is the period starting at
+ * `periodStart` (s) and whose periods are `periodLength` (s) long (ApexCharts datetime axis).
+ */
+function timeSeries(values, periodStart, periodLength) {
+  const n = values.length;
+  return values.map((v, i) => [
+    (periodStart - (n - 1 - i) * periodLength) * 1000,
+    v,
+  ]);
+}
+
+/**
+ * Options of a running/waiting chart.
+ *
+ * @param capacity  executions the scheduler can run at once (dashed line), or null if unknown
+ * @param axisFormat  format of the time labels (local time)
+ * @param tooltipFormat  format of the period in the tooltip
+ */
+function gaugeOptions(capacity, axisFormat, tooltipFormat) {
+  return {
+    chart: {
+      animations: { enabled: false }, // redrawn every 10 s, animation would only distract
+      toolbar: { show: false },
+      zoom: { enabled: false },
+    },
+    colors: [COLOR_RUNNING, COLOR_WAITING],
+    stroke: { curve: "stepline", width: 2 },
+    fill: { type: "solid", opacity: 0.12 },
+    dataLabels: { enabled: false },
+    markers: { size: 0, hover: { size: 5 } },
+    xaxis: {
+      type: "datetime",
+      labels: { datetimeUTC: false, format: axisFormat },
+      tooltip: { enabled: false },
+    },
+    yaxis: {
+      min: 0,
+      // at least up to the capacity, so that the capacity line is always in the chart
+      max: (max) => Math.max(max, capacity || 0, 1),
+      forceNiceScale: true,
+      labels: { formatter: (val) => Math.round(val) },
+      title: { text: "executions" },
+    },
+    grid: { borderColor: "#e6e6e3" },
+    tooltip: { shared: true, x: { format: tooltipFormat } },
+    legend: { show: true, position: "top", horizontalAlign: "left" },
+    annotations: capacity
+      ? {
+          yaxis: [
+            {
+              y: capacity,
+              borderColor: COLOR_MUTED,
+              strokeDashArray: 4,
+              label: {
+                text: `capacity ${capacity}`,
+                borderColor: "transparent",
+                style: { color: "#555", background: "transparent" },
+              },
+            },
+          ],
+        }
+      : {},
+  };
+}
 
 export default defineComponent({
   name: "SchedulerStatHistory",
   components: {
     apexchart: VueApexCharts,
   },
-  setup() {
-    const store = useSchedulerStatStore();
-    //console.log(store);
-    return {
-      store,
-    };
-  },
-  data() {
-    return {
-      pooling: null,
-      chartOptions: {
-        chart: {
-          type: "bar",
-          height: 100,
-        },
-        xaxis: {
-          categories: Array(48).fill(""),
-        },
-        yaxis: {
-          labels: {
-            formatter: function (val, index) {
-              return val.toFixed(2);
-            },
-          },
-        },
-        dataLabels: {
-          enabled: false,
-          position: "bottom",
-        },
-        stroke: {
-          show: true,
-          colors: ["transparent"],
-        },
-        fill: {
-          opacity: 1,
-        },
-        legend: {
-          show: true,
-          floating: false,
-          width: 150,
-          showForSingleSeries: true,
-          position: "right",
-        },
-      },
-      loadchartOptions: {
-        chart: {
-          type: "bar",
-          height: 100,
-        },
-        dataLabels: {
-          enabled: false,
-          position: "bottom",
-        },
-        xaxis: {
-          categories: Array(48).fill(""),
-          /*(function (a, b) {
-                        while (a--) b[a] = a;
-                        return b;
-                    })(48, []),*/
-        },
-        yaxis: {
-          labels: {
-            formatter: function (val, index) {
-              return val.toFixed(2);
-            },
-          },
-        },
-        legend: {
-          show: true,
-          floating: false,
-          width: 150,
-          showForSingleSeries: true,
-          position: "right",
-        },
-      },
-    };
+  props: {
+    /** the scheduler shown (normalised entry of the schedulerStat store), or null */
+    scheduler: { type: Object, default: null },
   },
   computed: {
-    // history of the scheduler shown in detail (empty if it did not answer)
     hist() {
-      const c = this.store.current;
-      return c && c.history ? c.history : { pooledTasks48: [], processedTasks48: [], load48: [] };
+      return this.scheduler.history;
     },
-    series() {
+    /** whether the scheduler reports the running/waiting history (newer mupifDB versions) */
+    hasGauges() {
+      return this.hist.running48.length > 0;
+    },
+    capacity() {
+      return this.scheduler.stat ? this.scheduler.stat.capacity : null;
+    },
+    series120m() {
+      const h = this.hist;
       return [
         {
-          name: "pooledTasks",
-          data: this.hist.pooledTasks48.map((x) => x),
+          name: "Running",
+          data: timeSeries(
+            h.running120m,
+            h.periodStart120m,
+            h.periodLength120m
+          ),
         },
         {
-          name: "processedTasks",
-          data: this.hist.processedTasks48.map((x) => x), //Array(48).fill(0),
+          name: "Waiting",
+          data: timeSeries(
+            h.waiting120m,
+            h.periodStart120m,
+            h.periodLength120m
+          ),
         },
       ];
     },
-    loadseries() {
+    series48() {
+      const h = this.hist;
       return [
         {
-          name: "load",
-          data: this.hist.load48.map((x) => x),
+          name: "Running",
+          data: timeSeries(h.running48, h.periodStart48, h.periodLength48),
+        },
+        {
+          name: "Waiting",
+          data: timeSeries(h.waiting48, h.periodStart48, h.periodLength48),
         },
       ];
     },
-  },
-  /*methods: {
-    poolData() {
-      this.pooling = setInterval(async () => {
-        //console.log("Getting ...");
-        const response = await fetch(
-          process.env.MUPIF_API_URL + "/scheduler-status2/"
-        );
-        if (response.status == 200) {
-          const answer = await response.json();
-
-          if (answer[0].history.pooledTasks48) {
-            var newdata = this.series[1].data.map(function (el, index) {
-              return answer[0].history.pooledTasks48[index];
-            });
-
-            this.series[0] = {
-              data: newdata,
-            };
-          }
-
-          if (answer[0].history.processedTasks48) {
-            var newdata = this.series[1].data.map(function (el, index) {
-              return answer[0].history.processedTasks48[index];
-            });
-
-            this.series[1] = {
-              data: newdata,
-            };
-          }
-
-          if (answer[0].history.load48) {
-            var newdata = this.series[1].data.map(function (el, index) {
-              return answer[0].history.load48[index];
-            });
-
-            this.loadseries[0] = {
-              data: newdata,
-            };
-          }
-        }
-      }, 3000);
+    options120m() {
+      return gaugeOptions(this.capacity, "HH:mm", "HH:mm");
+    },
+    options48() {
+      return gaugeOptions(this.capacity, "dd MMM HH:mm", "dd MMM HH:00");
+    },
+    // fallback for older schedulers: load in % by hours
+    seriesLoad48() {
+      const h = this.hist;
+      return [
+        {
+          name: "Load %",
+          data: timeSeries(h.load48, h.periodStart48, h.periodLength48),
+        },
+      ];
+    },
+    optionsLoad48() {
+      return {
+        chart: {
+          animations: { enabled: false },
+          toolbar: { show: false },
+          zoom: { enabled: false },
+        },
+        colors: [COLOR_RUNNING],
+        plotOptions: { bar: { borderRadius: 2, columnWidth: "70%" } },
+        dataLabels: { enabled: false },
+        xaxis: {
+          type: "datetime",
+          labels: { datetimeUTC: false, format: "dd MMM HH:mm" },
+        },
+        yaxis: {
+          min: 0,
+          max: 100,
+          labels: { formatter: (val) => `${Math.round(val)} %` },
+        },
+        tooltip: { x: { format: "dd MMM HH:00" } },
+      };
     },
   },
-  created() {
-    this.poolData();
-  },
-  beforeUnmount() {
-    clearInterval(this.pooling);
-  },*/
 });
 </script>
 

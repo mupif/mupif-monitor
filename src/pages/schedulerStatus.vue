@@ -21,7 +21,7 @@
     {{ stat.failed }}
   </div>
 
-  <SchedulerStatHistory />
+  <SchedulerStatHistory :scheduler="store.current" />
   <SchedulerLastExecutions />
 </template>
 
