@@ -87,7 +87,9 @@
           <q-card-section class="q-pt-none">
             <div v-if="!sched" class="text-grey-8">
               {{
-                schedStore.totalCount
+                schedStore.error
+                  ? "No data: " + schedStore.error
+                  : schedStore.totalCount
                   ? "No scheduler answers."
                   : "No scheduler is registered."
               }}
@@ -158,7 +160,12 @@
           </q-card-section>
           <q-card-section class="q-pt-none">
             <div v-if="!execStore.available" class="text-grey-8">
-              Not available from this API version.
+              <!-- 404: API without the endpoint (older mupifDB); else the API is not reachable -->
+              {{
+                execStore.error && execStore.error.includes("HTTP 404")
+                  ? "Not available from this API version."
+                  : "No data" + (execStore.error ? ": " + execStore.error : ".")
+              }}
             </div>
             <template v-else>
               <div class="stat-label">In total</div>
@@ -192,7 +199,11 @@
           </q-card-section>
           <q-card-section class="q-pt-none">
             <div v-if="!models.count" class="text-grey-8">
-              No model server is registered.
+              {{
+                apiDown
+                  ? "No data: the API is not reachable."
+                  : "No model server is registered."
+              }}
             </div>
             <template v-else>
               <div class="row q-col-gutter-sm">
@@ -335,6 +346,10 @@ export default {
     return { pooling: null };
   },
   computed: {
+    /** the API did not answer the last time (the cards then have no data rather than none) */
+    apiDown() {
+      return this.platformStore.loaded && this.platformStore.services === null;
+    },
     platformName() {
       const s = this.platformStore.services;
       return s ? s.name : null;
@@ -429,11 +444,15 @@ export default {
       const down = ss.schedulers.filter((s) => !s.available);
       for (const s of this.services) {
         // a scheduler problem is described below in more detail (which scheduler)
-        if (s.label === "Scheduler" && (down.length || ss.totalCount === 0))
+        if (
+          s.label === "Scheduler" &&
+          (down.length || (!ss.error && ss.totalCount === 0))
+        )
           continue;
         if (s.ok === false) p.push(`${s.label} is not working.`);
       }
-      if (ss.lastUpdate && ss.totalCount === 0)
+      // (not known when the scheduler statistics could not be read)
+      if (ss.lastUpdate && !ss.error && ss.totalCount === 0)
         p.push("No scheduler is registered.");
       if (down.length) {
         p.push(
