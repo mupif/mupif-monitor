@@ -24,7 +24,9 @@ export const useJobmansStatStore = defineStore("jobmansStat", {
           console.log("ok");
           var ans = [];
           for (var j of answer) {
-            // loop over individual jobman data
+            // loop over individual jobman data; a model server which did not answer in time is
+            // null in the answer of older APIs (mupif.monitor.jobmanInfo) and has no data
+            if (!j || !j.ns || !j.numJobs) continue;
             var d = {
               name: j.ns.name,
               uri: j.ns.uri,
@@ -34,7 +36,10 @@ export const useJobmansStatStore = defineStore("jobmansStat", {
                 current: j.numJobs.curr,
                 max: j.numJobs.max,
                 total: j.numJobs.total,
-                load: Math.round((j.numJobs.curr / j.numJobs.max) * 100),
+                // a server without any job slot (max 0) has no load
+                load: j.numJobs.max
+                  ? Math.round((j.numJobs.curr / j.numJobs.max) * 100)
+                  : 0,
               },
               jobs: j.jobs,
             };
