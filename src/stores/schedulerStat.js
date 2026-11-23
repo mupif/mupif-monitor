@@ -14,7 +14,9 @@ import { defineStore } from "pinia";
  *     history: {pooledTasks48, processedTasks48, finishedTasks48, failedTasks48, load48,
  *               running48, waiting48, running120m, waiting120m,     // newer schedulers
  *               periodStart48, periodLength48, periodStart120m, periodLength120m},
- *     lastExecutions: [{weid, wid, status, started, finished}],
+ *     lastExecutions: [{weid, wid, status, started, finished,
+ *                       modelServers}],  // {model: model server}; newer schedulers
+ *     modelServerJobs: {modelServer: n},  // running executions per model server; newer schedulers
  *   }
  *
  * Older APIs return null for a scheduler which did not answer, and older schedulers do not report
@@ -42,7 +44,7 @@ function periodStartAt(nowSec, lengthSec) {
  *
  * @param entry  SchedulerInfo from the API, or null (older API: scheduler did not answer)
  * @param index  position in the answer (names the scheduler if the entry is null)
- * @returns {{name, uri, available, error, stat, history, lastExecutions}}
+ * @returns {{name, uri, available, error, stat, history, lastExecutions, modelServerJobs}}
  */
 function normaliseScheduler(entry, index) {
   const nowSec = Date.now() / 1000;
@@ -55,6 +57,7 @@ function normaliseScheduler(entry, index) {
       stat: null,
       history: null,
       lastExecutions: [],
+      modelServerJobs: null,
     };
   }
   const n = entry.numTasks || {};
@@ -105,7 +108,13 @@ function normaliseScheduler(entry, index) {
         opt(h.periodStart120m) ?? periodStartAt(nowSec, periodLength120m),
       periodLength120m: periodLength120m,
     },
-    lastExecutions: entry.lastExecutions || [],
+    // modelServers of an execution: null = not reported (older scheduler), {} = not known yet
+    lastExecutions: (entry.lastExecutions || []).map((e) => ({
+      ...e,
+      modelServers: opt(e.modelServers),
+    })),
+    // running executions per model server (registered name); null = not reported
+    modelServerJobs: opt(entry.modelServerJobs),
   };
 }
 
@@ -166,6 +175,24 @@ export const useSchedulerStatStore = defineStore("schedulerStat", {
     /** Function returning the scheduler with the given nameserver name (or undefined). */
     byName(state) {
       return (name) => state.schedulers.find((s) => s.name === name);
+    },
+    /**
+     * Running executions per model server (registered name), summed over the available schedulers.
+     *
+     * @returns null if no available scheduler reports it (older schedulers)
+     */
+    modelServerJobs() {
+      const reported = this.availableSchedulers.filter(
+        (s) => s.modelServerJobs !== null
+      );
+      if (!reported.length) return null;
+      const total = {};
+      for (const s of reported) {
+        for (const [server, n] of Object.entries(s.modelServerJobs)) {
+          total[server] = (total[server] || 0) + n;
+        }
+      }
+      return total;
     },
     /**
      * Totals over the available schedulers, for the overview.

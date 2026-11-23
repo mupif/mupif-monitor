@@ -88,6 +88,7 @@
 import { ref } from "vue";
 import { computed } from "vue";
 import { useJobmansStatStore } from "stores/jobmansStat";
+import { useSchedulerStatStore } from "stores/schedulerStat";
 import { storeToRefs } from "pinia";
 
 const columns = [
@@ -123,6 +124,22 @@ const columns = [
     field: (row) => row.jobStat.current,
   },
   {
+    // the model server it is an instance of: instances register as <base>~<instance>
+    name: "base",
+    label: "Instance of",
+    align: "left",
+    field: (row) => row.name.split("~")[0],
+    sortable: true,
+  },
+  {
+    // executions of the scheduler(s) with a model running on this server; "–" if the
+    // scheduler does not report it
+    name: "schedulerJobs",
+    label: "Scheduler executions",
+    field: (row) => row.schedulerJobs,
+    format: (val) => (val === null ? "–" : `${val}`),
+  },
+  {
     name: "totalJobs",
     label: "Processed jobs",
     field: (row) => row.jobStat.total,
@@ -133,12 +150,16 @@ const columns = [
 export default {
   setup() {
     const store = useJobmansStatStore();
+    // executions of the schedulers per model server (the load the schedulers put on each)
+    const schedStore = useSchedulerStatStore();
     var activePoolRequests= 0;
 
     store.update();
+    schedStore.update();
     return {
       splitterModel: ref(50), // start at 50%
       store,
+      schedStore,
       activePoolRequests,
     };
   },
@@ -152,7 +173,11 @@ export default {
   },
   computed: {
     rows() {
-      return this.store.jobmanData;
+      const perServer = this.schedStore.modelServerJobs;
+      return this.store.jobmanData.map((j) => ({
+        ...j,
+        schedulerJobs: perServer === null ? null : perServer[j.name] || 0,
+      }));
     },
     getlog() {
       for (var j of this.store.jobmanData) {
@@ -186,7 +211,7 @@ export default {
           this.activePoolRequests++;
           console.log("JobManStat pooling data, active requests = ", this.activePoolRequests);
           var runID = this.activePoolRequests;
-          await(this.store.update());
+          await Promise.all([this.store.update(), this.schedStore.update()]);
           /*
           const date = Date.now();
           let currentDate = null;
