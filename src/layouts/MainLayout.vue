@@ -1,5 +1,8 @@
 <template>
-  <q-layout view="hHh lpR fFf">
+  <q-layout view="hHh lpR fff">
+    <!-- footer not fixed ("fff"): a footer fixed to the window covered the end of the pages (e.g. rows
+         of the last executions of the scheduler) until scrolled down, and in full-page captures and
+         printouts; now it follows the content (at the bottom of the window on short pages) -->
     <q-header elevated class="bg-primary text-white" height-hint="98">
       <q-toolbar>
         <q-toolbar-title>

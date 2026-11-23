@@ -66,6 +66,22 @@ export default defineComponent({
           field: (row) => row.finished,
           align: "left",
         },
+        {
+          // model -> model server (registered name) chosen by the workflow; shown once the
+          // execution has stored it, "–" for schedulers which do not report it
+          name: "modelServers",
+          label: "Model servers",
+          field: (row) => row.modelServers,
+          format: (val) =>
+            val === null || val === undefined
+              ? "–"
+              : Object.keys(val).length
+              ? Object.entries(val)
+                  .map(([model, server]) => `${model} → ${server}`)
+                  .join(", ")
+              : "not known yet",
+          align: "left",
+        },
       ],
       //      executions: [],
     };
