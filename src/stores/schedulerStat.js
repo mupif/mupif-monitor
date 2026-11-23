@@ -24,9 +24,10 @@ import { defineStore } from "pinia";
  * same shape (normaliseScheduler below), using null for values which are not known, so that the
  * pages can show "unknown" instead of a misleading 0.
  *
- * Only one scheduler per deployment is supported by mupifDB at the moment, but nothing here
- * assumes it: the pages show the selected scheduler (Scheduler tab) or the totals over all
- * available ones (Overview tab, getter "summary").
+ * Several schedulers may run in a deployment (mupifDB takes executions under leases, so each runs
+ * on exactly one of them); each registers as mupif.scheduler.<scheduler_id>. The pages show the
+ * selected scheduler (Scheduler tab) or the totals over all available ones (Overview tab, getter
+ * "summary").
  */
 
 /** Value of an optional numeric field: null if missing (unknown). */
